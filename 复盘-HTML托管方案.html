@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复盘：HTML托管方案探索</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.8;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .meta { color: #888; font-size: 14px; margin-bottom: 32px; }
+        h2 {
+            font-size: 20px;
+            margin: 32px 0 16px;
+            padding-left: 12px;
+            border-left: 4px solid #667eea;
+        }
+        h3 { font-size: 16px; margin: 20px 0 10px; color: #555; }
+        p, li { font-size: 15px; margin-bottom: 8px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 6px;
+        }
+        .tag-fail { background: #fee2e2; color: #dc2626; }
+        .tag-ok { background: #d1fae5; color: #059669; }
+        .tag-warn { background: #fef3c7; color: #d97706; }
+        .timeline {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 20px;
+            margin: 16px 0;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+        .timeline-item.fail::before { background: #dc2626; }
+        .timeline-item.ok::before { background: #059669; }
+        .timeline-item .time { font-size: 13px; color: #888; }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+        }
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 12px 0;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .summary-card h4 { font-size: 14px; color: #888; margin-bottom: 8px; }
+        .summary-card .value { font-size: 24px; font-weight: 600; }
+        .arrow { text-align: center; color: #ccc; font-size: 20px; margin: 8px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+        th { background: #f9fafb; font-weight: 600; }
+        .footer { text-align: center; color: #aaa; font-size: 13px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h1>复盘：HTML托管方案探索</h1>
+<p class="meta">2026年6月 · 恩泽 × 小赫（Hermes Agent）</p>
+
+<div class="card">
+    <h3>📋 背景</h3>
+    <p>需要将 AI 生成的 HTML 文件（架构图、原型等）通过链接分享给同事，要求：</p>
+    <ul>
+        <li>手机浏览器 / 飞书内直接打开，能正常显示</li>
+        <li>无需下载文件，点击链接即看</li>
+        <li>免费、简单、稳定</li>
+    </ul>
+</div>
+
+<h2>一、方案一：腾讯云 COS</h2>
+
+<div class="card">
+    <h3>✅ 步骤</h3>
+    <div class="timeline">
+        <div class="timeline-item ok">
+            <div class="time">Step 1</div>
+            <p>创建存储桶 <code>mysite-1439242851</code>，区域 <code>ap-beijing</code></p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 2</div>
+            <p>安装 <code>cos-python-sdk-v5</code>，编写上传脚本 <code>~/.hermes/scripts/cos-upload.py</code></p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 3</div>
+            <p>设置存储桶权限为「公有读」</p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 4</div>
+            <p>上传文件，自动设置 <code>Content-Type: text/html</code> + <code>Content-Disposition: inline</code></p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 5</div>
+            <p>开启「静态网站」功能，配置默认首页 <code>index.html</code></p>
+        </div>
+    </div>
+
+    <h3>❌ 结果</h3>
+    <p><span class="tag tag-ok">电脑浏览器</span> 正常显示 ✅</p>
+    <p><span class="tag tag-fail">手机飞书内置浏览器</span> 强制下载 ❌</p>
+    <p><span class="tag tag-fail">手机夸克浏览器</span> 强制下载 ❌</p>
+</div>
+
+<div class="card">
+    <h3>🔍 原因分析</h3>
+    <ul>
+        <li>COS 的对象存储 URL 本质是「文件下载链接」，即使设置了 <code>inline</code> 头</li>
+        <li>飞书内置浏览器和部分手机浏览器会覆盖 <code>Content-Disposition</code>，强制触发下载</li>
+        <li>COS 静态网站模式（<code>cos-website</code> 域名）解决了电脑端，但手机端仍有问题</li>
+        <li>根本原因：<strong>COS 不是真正的 Web 托管服务</strong>，只是对象存储</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h3>📌 经验教训</h3>
+    <ul>
+        <li>设置 <code>Content-Type: text/html</code> 和 <code>Content-Disposition: inline</code> 不够</li>
+        <li>COS 静态网站功能在手机端不可靠</li>
+        <li>对象存储 ≠ 静态网站托管，别被「静态网站」功能名误导</li>
+    </ul>
+</div>
+
+<h2>二、方案二：GitHub Pages</h2>
+
+<div class="card">
+    <h3>✅ 步骤</h3>
+    <div class="timeline">
+        <div class="timeline-item ok">
+            <div class="time">Step 1</div>
+            <p>生成 GitHub <strong>Classic Token</strong>（细粒度 token 权限不足，不支持创建仓库和推送）</p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 2</div>
+            <p>手动创建公开仓库 <code>liangenze/mysite</code></p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 3</div>
+            <p>克隆仓库，放入 <code>index.html</code>，推送</p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 4</div>
+            <p>通过 GitHub API 开启 Pages（source: master 分支）</p>
+        </div>
+        <div class="timeline-item ok">
+            <div class="time">Step 5</div>
+            <p>等待部署生效（约 1-2 分钟）</p>
+        </div>
+    </div>
+
+    <h3>✅ 结果</h3>
+    <p><span class="tag tag-ok">电脑浏览器</span> 正常 ✅</p>
+    <p><span class="tag tag-ok">手机浏览器</span> 正常 ✅</p>
+    <p><span class="tag tag-ok">飞书内打开</span> 正常 ✅</p>
+</div>
+
+<div class="card">
+    <h3>⚠️ 注意事项</h3>
+    <ul>
+        <li>部署后需要 1-2 分钟生效，首次可能返回 404</li>
+        <li>国内网络访问 GitHub Pages 可能不稳定，建议多试几次</li>
+        <li>文件名用英文（如 <code>arch.html</code>），中文路径虽然能用但 URL 不好看</li>
+        <li>GitHub Pages 是真正的静态 Web 托管，浏览器会正确处理 MIME 类型</li>
+    </ul>
+</div>
+
+<h2>三、方案对比</h2>
+
+<div class="card">
+<table>
+    <tr>
+        <th>对比项</th>
+        <th>腾讯云 COS</th>
+        <th>GitHub Pages</th>
+    </tr>
+    <tr>
+        <td>手机浏览器</td>
+        <td><span class="tag tag-fail">强制下载</span></td>
+        <td><span class="tag tag-ok">正常显示</span></td>
+    </tr>
+    <tr>
+        <td>飞书内置浏览器</td>
+        <td><span class="tag tag-fail">强制下载</span></td>
+        <td><span class="tag tag-ok">正常显示</span></td>
+    </tr>
+    <tr>
+        <td>部署方式</td>
+        <td>API 上传文件</td>
+        <td>Git push</td>
+    </tr>
+    <tr>
+        <td>免费额度</td>
+        <td>10GB / 6个月</td>
+        <td>无限（公开仓库）</td>
+    </tr>
+    <tr>
+        <td>访问速度（国内）</td>
+        <td><span class="tag tag-ok">快</span></td>
+        <td><span class="tag tag-warn">一般</span></td>
+    </tr>
+    <tr>
+        <td>自定义域名</td>
+        <td>支持（需备案）</td>
+        <td>支持（不需备案）</td>
+    </tr>
+    <tr>
+        <td>动态内容</td>
+        <td>❌</td>
+        <td>❌</td>
+    </tr>
+    <tr>
+        <td>推荐场景</td>
+        <td>文件下载、图片托管</td>
+        <td>HTML 页面分享、静态站点</td>
+    </tr>
+</table>
+</div>
+
+<h2>四、踩过的坑</h2>
+
+<div class="card">
+<ol>
+    <li><strong>COS Content-Disposition 设置无效</strong><br>
+    <span style="color:#888">即使设置了 <code>inline</code>，手机浏览器仍会下载。对象存储的响应头不能覆盖浏览器的默认行为。</span></li>
+    
+    <li><strong>GitHub 细粒度 Token 权限不足</strong><br>
+    <span style="color:#888">Fine-grained token 无法创建仓库和推送代码，需要 Classic Token + <code>repo</code> 权限。</span></li>
+    
+    <li><strong>GitHub Pages 部署延迟</strong><br>
+    <span style="color:#888">开启 Pages 后不会立即生效，需要等待 1-2 分钟。不要一看到 404 就以为配置错了。</span></li>
+    
+    <li><strong>master vs main 分支</strong><br>
+    <span style="color:#888">手动创建的仓库默认分支是 <code>master</code>，GitHub Pages 需要对应配置。推送时也要用 <code>master</code>。</span></li>
+    
+    <li><strong>中文文件名</strong><br>
+    <span style="color:#888">能用但 URL 会变成百分号编码（<code>%E5%A4%9A...</code>），不美观也不好分享。建议用英文。</span></li>
+</ol>
+</div>
+
+<h2>五、最终方案</h2>
+
+<div class="card">
+    <p><strong>GitHub Pages + Git 工作流</strong></p>
+    <pre>
+# 上传新文件
+cp new-file.html /tmp/mysite/
+cd /tmp/mysite
+git add -A && git commit -m "add: xxx"
+python3 /tmp/push_git.py
+
+# 访问链接
+https://liangenze.github.io/mysite/arch.html</pre>
+    <p style="margin-top:12px">后续更新页面，推送到 <code>master</code> 分支即可，GitHub Pages 自动部署。</p>
+</div>
+
+<div class="summary-grid">
+    <div class="summary-card">
+        <h4>总耗时</h4>
+        <div class="value">~30 分钟</div>
+    </div>
+    <div class="summary-card">
+        <h4>尝试方案</h4>
+        <div class="value">2 个</div>
+    </div>
+    <div class="summary-card">
+        <h4>踩坑次数</h4>
+        <div class="value">5 次</div>
+    </div>
+    <div class="summary-card">
+        <h4>最终方案</h4>
+        <div class="value" style="font-size:18px">GitHub Pages</div>
+    </div>
+</div>
+
+<div class="footer">
+    小赫 · Hermes Agent · 2026年6月
+</div>
+
+</div>
+</body>
+</html>
